@@ -15,10 +15,6 @@ on:
         description: "Select also to maven repo defined by profile custom-maven"
         type: boolean
         default: false
-      BRANCH:
-        description: "Branch to checkout (Ignored if RELEASE_BUILD is true)"
-        type: string
-        default: "develop"
 
 # Verhindert, dass alte Builds Log-Speicher blockieren (Entspricht buildDiscarder)
 concurrency:
@@ -64,8 +60,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.RELEASE_BUILD == 'true' && 'develop' || github.event.inputs.BRANCH }}
-          token: ${{ env.GIT_CREDENTIALS }} # Korrigiert auf env.GIT_CREDENTIALS (Großschreibung)
+          ref: ${{ github.event.inputs.RELEASE_BUILD == 'true' && 'develop' ||  github.ref_name }}
+          token: ${{ env.GIT_CREDENTIALS }}
           fetch-depth: 0
 
       - name: Cache Maven Packages
@@ -109,6 +105,18 @@ jobs:
       - name: Gitflow Release (Lokaler Build & Verifizierung)
         if: ${{ github.event.inputs.RELEASE_BUILD == 'true' }}
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          # 2. GPG-Konfiguration für automatisierte Umgebungen anpassen
+          # (Wir setzen die Flags über den gpg-agent, statt Git mit Argumenten zu verwirren)
+          mkdir -p ~/.gnupg
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          gpgconf --kill gpg-agent
+
+          # Standard-GPG-Pfad für Git setzen (ohne Parameter-Strings)
+          git config --global gpg.program "gpg"
+
           git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
           git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
           git config --global commit.gpgsign true
