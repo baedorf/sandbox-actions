@@ -31,7 +31,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <sonar.host.url>${SONAR_HOSTURL}</sonar.host.url>
+                <sonar.host.url>https://sonar.michael-baedorf.de</sonar.host.url>
                 <sonar.token>${SONAR_TOKEN}</sonar.token>
             </properties>
         </profile>
