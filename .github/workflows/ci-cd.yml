@@ -61,7 +61,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.RELEASE_BUILD == 'true' && 'develop' ||  github.ref_name }}
-          token: ${{ env.GIT_CREDENTIALS }} # Korrigiert auf env.GIT_CREDENTIALS (Großschreibung)
+          token: ${{ env.GIT_CREDENTIALS }}
           fetch-depth: 0
 
       - name: Cache Maven Packages
