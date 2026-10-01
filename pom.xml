@@ -7,7 +7,7 @@
     <groupId>de.familiebaedorf</groupId>
     <artifactId>sandbox-actions</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.3</version>
     <description>github actions sandbox</description>
     <packaging>jar</packaging>
 
