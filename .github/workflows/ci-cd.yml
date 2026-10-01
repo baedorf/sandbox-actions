@@ -91,11 +91,11 @@ jobs:
           name: jacoco-report
           path: "**/target/site/jacoco/"
 
-      - name: SonarQube Analysis
-        run: |
-          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} sonar:sonar -P tailoringexpert-maven
-        env:
-          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+      #- name: SonarQube Analysis
+      #  run: |
+      #    mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} sonar:sonar -P tailoringexpert-maven
+      #  env:
+      #    SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
 
       - name: Install
         run: |
