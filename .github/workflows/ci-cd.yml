@@ -105,6 +105,8 @@ jobs:
       - name: Gitflow Release (Lokaler Build & Verifizierung)
         if: ${{ github.event.inputs.RELEASE_BUILD == 'true' }}
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
           git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
           git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
           git config --global commit.gpgsign true
