@@ -11,10 +11,6 @@ on:
         description: "Deploy to tailoringxpert repo"
         type: boolean
         default: false
-      DEPLOY_TO_CUSTOM_REPOSITORY:
-        description: "Select also to maven repo defined by profile custom-maven"
-        type: boolean
-        default: false
 
 # Verhindert, dass alte Builds Log-Speicher blockieren (Entspricht buildDiscarder)
 concurrency:
