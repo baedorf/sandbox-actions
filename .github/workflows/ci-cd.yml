@@ -107,9 +107,16 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-          export GPG_TTY=$(tty)
-          git config --global gpg.program "gpg --batch --no-tty"
-          
+          # 2. GPG-Konfiguration für automatisierte Umgebungen anpassen
+          # (Wir setzen die Flags über den gpg-agent, statt Git mit Argumenten zu verwirren)
+          mkdir -p ~/.gnupg
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          gpgconf --kill gpg-agent
+
+          # Standard-GPG-Pfad für Git setzen (ohne Parameter-Strings)
+          git config --global gpg.program "gpg"
+
           git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
           git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
           git config --global commit.gpgsign true
