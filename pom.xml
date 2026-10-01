@@ -73,7 +73,6 @@
 
         <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
         <sonar.projectName>${sonar.projectKey}</sonar.projectName>
-        <sonar.exclusions>**/*Configuration.java</sonar.exclusions>
 
         <!-- plugins -->
         <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
@@ -135,7 +134,11 @@
                     </gitFlowConfig>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-maven-plugin.version}</version>
+            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
