@@ -93,13 +93,13 @@ jobs:
       - name: Quality Gate
         timeout-minutes: 60
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
         run: |
           mvn --settings .jenkins/settings.xml \
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }}/repository \
               sonar:sonar \
               -P tailoringexpert-maven \
-              -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.token=${{ env.SONAR_TOKEN }} \
               -Dsonar.host.url="https://sonar.michael-baedorf.de"
 
       - name: SonarQube Quality Gate Check
