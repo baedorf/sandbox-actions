@@ -45,7 +45,7 @@ jobs:
 
     container:
       image: ghcr.io/tailoringexpert/maven:3.9-eclipse-25
-      options: --user 1001:127
+      #options: -user 1001:127
       env:
         GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
         GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
@@ -90,17 +90,29 @@ jobs:
           name: jacoco-report
           path: "**/target/site/jacoco/"
 
-      #- name: SonarQube Analysis
-      #  run: |
-      #    mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} sonar:sonar -P tailoringexpert-maven
-      #  env:
-      #    SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+      - name: Quality Gate
+        timeout-minutes: 60
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn --settings .jenkins/settings.xml \
+              -Dmaven.repo.local=${{ env.M2_REPO_PATH }}/repository \
+              sonar:sonar \
+              -P tailoringexpert-maven \
+              -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.host.url="https://sonar.michael-baedorf.de"
+
+      - name: SonarQube Quality Gate Check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 60
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Install
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests install -P tailoringexpert-maven
 
-      # Release-Vorbereitung (NUR lokal im Runner, kein Push zurück zu GitHub)
+      # Release-Vorbereitung (NUR lokal im Runner, kein ush zurück zu GitHub)
       - name: Gitflow Release (Lokaler Build & Verifizierung)
         if: ${{ github.event.inputs.RELEASE_BUILD == 'true' }}
         run: |
