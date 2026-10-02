@@ -45,6 +45,15 @@ jobs:
 
     container:
       image: ghcr.io/tailoringexpert/maven:3.9-eclipse-25
+      options: -user 1001:127
+      env:
+        GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+        GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+        MAVEN_SNAPSHOTURL: ${{ secrets.MAVEN_SNAPSHOTURL }}
+        MAVEN_RELEASEURL: ${{ secrets.MAVEN_RELEASEURL }}
+        MAVEN_CREDENTIALS_USR: ${{ secrets.MAVEN_CREDENTIALS_USR }}
+        MAVEN_CREDENTIALS_PSW: ${{ secrets.MAVEN_CREDENTIALS_PSW }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - name: Checkout Code
