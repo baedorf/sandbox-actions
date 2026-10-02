@@ -102,6 +102,9 @@ jobs:
               -Dsonar.token=${{ env.SONAR_TOKEN }} \
               -Dsonar.host.url="https://sonar.michael-baedorf.de"
 
+      - name: Find report-task.txt
+        run: find . -name "report-task.txt"
+
       - name: SonarQube Quality Gate Check
         uses: sonarsource/sonarqube-quality-gate-action@master
         timeout-minutes: 60
