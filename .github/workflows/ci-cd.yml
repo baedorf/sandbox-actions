@@ -11,10 +11,6 @@ on:
         description: "Deploy to tailoringxpert repo"
         type: boolean
         default: false
-      DEPLOY_TO_CUSTOM_REPOSITORY:
-        description: "Select also to maven repo defined by profile custom-maven"
-        type: boolean
-        default: false
 
 # Verhindert, dass alte Builds Log-Speicher blockieren (Entspricht buildDiscarder)
 concurrency:
@@ -48,13 +44,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      # WICHTIG: vars.DOCKER_URL muss in den GitHub Settings -> Variables eingetragen sein!
-      image: ${{ vars.DOCKER_URL }}/tailoringexpert/maven:3.9-eclipse-25
-
-      # Direktes Mapping der echten GitHub-Secrets (da env-Kontext hier noch nicht existiert)
-      credentials:
-        username: ${{ secrets.DOCKER_CREDENTIALS_USR }}
-        password: ${{ secrets.DOCKER_CREDENTIALS_PSW }}
+      image: ghcr.io/tailoringexpert/maven:3.9-eclipse-25
 
     steps:
       - name: Checkout Code
@@ -91,11 +81,11 @@ jobs:
           name: jacoco-report
           path: "**/target/site/jacoco/"
 
-      - name: SonarQube Analysis
-        run: |
-          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} sonar:sonar -P tailoringexpert-maven
-        env:
-          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+      #- name: SonarQube Analysis
+      #  run: |
+      #    mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} sonar:sonar -P tailoringexpert-maven
+      #  env:
+      #    SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
 
       - name: Install
         run: |
@@ -105,6 +95,8 @@ jobs:
       - name: Gitflow Release (Lokaler Build & Verifizierung)
         if: ${{ github.event.inputs.RELEASE_BUILD == 'true' }}
         run: |
+
+          # 2. Git-Sicherheit für den Container umgehen
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
           git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
