@@ -44,13 +44,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      # WICHTIG: vars.DOCKER_URL muss in den GitHub Settings -> Variables eingetragen sein!
-      #image: ${{ vars.DOCKER_URL }}/tailoringexpert/maven:3.9-eclipse-25
-      image: maven:3-eclipse-temurin-25-noble
-      # Direktes Mapping der echten GitHub-Secrets (da env-Kontext hier noch nicht existiert)
-      #credentials:
-      #  username: ${{ secrets.DOCKER_CREDENTIALS_USR }}
-      #  password: ${{ secrets.DOCKER_CREDENTIALS_PSW }}
+      image: ghcr.io/tailoringexpert/maven:3.9-eclipse-25
 
     steps:
       - name: Checkout Code
@@ -101,19 +95,8 @@ jobs:
       - name: Gitflow Release (Lokaler Build & Verifizierung)
         if: ${{ github.event.inputs.RELEASE_BUILD == 'true' }}
         run: |
-          # 1. GPG im Ubuntu-Docker-Container installieren
-          # -y bestätigt automatisch, -qq unterdrückt unnötige Log-Ausgaben
-          apt-get update && apt-get install -y -qq gnupg
 
           # 2. Git-Sicherheit für den Container umgehen
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-          # 3. GPG-Agent für die Passphrase im Hintergrund (Loopback) konfigurieren
-          mkdir -p ~/.gnupg
-          chmod 700 ~/.gnupg
-          echo "allow-loopback-pinentry" > ~/.gnupg/gpg-agent.conf
-          gpgconf --kill gpg-agent
-
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
           git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
