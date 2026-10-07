@@ -113,6 +113,8 @@ jobs:
       - name: Verify
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} verify 
+        env:
+          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
 
       - name: Upload JaCoCo Coverage Report
         if: success()
@@ -125,6 +127,7 @@ jobs:
         timeout-minutes: 60
         env:
           SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
+          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
         run: |
           mvn --settings .jenkins/settings.xml \
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }}/repository \
@@ -147,6 +150,8 @@ jobs:
       - name: Install
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests install
+        env:
+          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
 
       # Release-Vorbereitung (NUR lokal im Runner, kein ush zurück zu GitHub)
       - name: Gitflow Release (Lokaler Build & Verifizierung)
@@ -171,8 +176,7 @@ jobs:
           mvn --settings .jenkins/settings.xml \
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }} \
               -DskipTests \
-              deploy
-              
+              deploy              
         env:
           MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
           MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
