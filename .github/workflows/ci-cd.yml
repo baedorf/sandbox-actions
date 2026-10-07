@@ -30,10 +30,13 @@ env:
 
   GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
   GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
-  MAVEN_SNAPSHOTURL: ${{ secrets.MAVEN_SNAPSHOTURL }}
-  MAVEN_RELEASEURL: ${{ secrets.MAVEN_RELEASEURL }}
-  MAVEN_CREDENTIALS_USR: ${{ secrets.MAVEN_CREDENTIALS_USR }}
-  MAVEN_CREDENTIALS_PSW: ${{ secrets.MAVEN_CREDENTIALS_PSW }}
+  env:
+
+
+  MAVEN_SNAPSHOTURL: ${{ vars.MAVEN_SNAPSHOTURL || secrets.MAVEN_SNAPSHOTURL}}
+  MAVEN_RELEASEURL: ${{ vars.MAVEN_RELEASEURL || secrets.MAVEN_RELEASEURL }}
+  MAVEN_CREDENTIALS_USR: ${{ secrets.MAVEN_CREDENTIALS_USR || github.actor}}
+  MAVEN_CREDENTIALS_PSW: ${{ secrets.MAVEN_CREDENTIALS_PSW || secrets.GITHUB_TOKEN }}
 
   # Hier korrigiert (Typo 'CREDENDITALS' entfernt)
   DOCKER_CREDENTIALS_USR: ${{ secrets.DOCKER_CREDENTIALS_USR }}
@@ -43,19 +46,34 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     container:
       image: ghcr.io/tailoringexpert/maven:3.9-eclipse-25
       #options: -user 1001:127
       env:
         GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
         GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
-        MAVEN_SNAPSHOTURL: ${{ secrets.MAVEN_SNAPSHOTURL }}
-        MAVEN_RELEASEURL: ${{ secrets.MAVEN_RELEASEURL }}
-        MAVEN_CREDENTIALS_USR: ${{ secrets.MAVEN_CREDENTIALS_USR }}
-        MAVEN_CREDENTIALS_PSW: ${{ secrets.MAVEN_CREDENTIALS_PSW }}
+        MAVEN_SNAPSHOTURL: ${{ env.MAVEN_SNAPSHOTURL }}
+        MAVEN_RELEASEURL: ${{ env.MAVEN_RELEASEURL }}
+        MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
+        MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
+      # - name: Team-Mitgliedschaft prüfen
+      #   env:
+      #     # Erfordert ein PAT (Personal Access Token) mit dem Recht 'read:org'
+      #     GH_TOKEN: ${{ secrets.ORG_READER_TOKEN }} 
+      #   run: |
+      #     # Prüft, ob der auslösende User im Team "release-manager" ist
+      #     if ! gh api orgs/baedorf/teams/release-manager/memberships/${{ github.actor }} --silent; then
+      #       echo "::error::Nur Mitglieder des Teams 'release-manager' dürfen diesen Workflow starten."
+      #       exit 1
+      #     fi
+
       - name: Checkout Code
         uses: actions/checkout@v4
         with:

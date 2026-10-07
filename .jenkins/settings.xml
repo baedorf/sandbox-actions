@@ -9,6 +9,11 @@
             <username>${MAVEN_CREDENTIALS_USR}</username>
             <password>${MAVEN_CREDENTIALS_PSW}</password>
         </server>
+        <server>
+            <id>github-maven</id>
+            <username>${MAVEN_CREDENTIALS_USR}</username>
+            <password>${MAVEN_CREDENTIALS_PSW}</password>
+        </server>
     </servers>
 
     <profiles>
@@ -20,6 +25,19 @@
             <properties>
                 <server.snapshot>tailoringexpert-maven</server.snapshot>
                 <server.release>tailoringexpert-maven</server.release>
+                <tailoringexpert-releases.repository>${MAVEN_RELEASEURL}</tailoringexpert-releases.repository>
+                <tailoringexpert-snapshots.repository>${MAVEN_SNAPSHOTURL}</tailoringexpert-snapshots.repository>
+                <tailoringexpert.repository>${MAVEN_URL}</tailoringexpert.repository>
+            </properties>
+        </profile>
+        <profile>
+            <id>github-maven</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <server.snapshot>github-maven</server.snapshot>
+                <server.release>github-maven</server.release>
                 <tailoringexpert-releases.repository>${MAVEN_RELEASEURL}</tailoringexpert-releases.repository>
                 <tailoringexpert-snapshots.repository>${MAVEN_SNAPSHOTURL}</tailoringexpert-snapshots.repository>
                 <tailoringexpert.repository>${MAVEN_URL}</tailoringexpert.repository>
