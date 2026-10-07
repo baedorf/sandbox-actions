@@ -25,7 +25,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  GIT_REPOSITORY: "tailoringexpert/platform.git"
   M2_REPO_PATH: ${{ github.workspace }}/.m2/repository
 
   GIT_CREDENTIALS: ${{ secrets.GIT_CREDENTIALS }}
@@ -65,28 +64,18 @@ jobs:
         MAVEN_RELEASEURL: ${{ env.MAVEN_RELEASEURL }}
         MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
         MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
 
     steps:
-      # - name: Team-Mitgliedschaft prüfen
-      #   env:
-      #     # Erfordert ein PAT (Personal Access Token) mit dem Recht 'read:org'
-      #     GH_TOKEN: ${{ secrets.ORG_READER_TOKEN }} 
-      #   run: |
-      #     # Prüft, ob der auslösende User im Team "release-manager" ist
-      #     if ! gh api orgs/baedorf/teams/release-manager/memberships/${{ github.actor }} --silent; then
-      #       echo "::error::Nur Mitglieder des Teams 'release-manager' dürfen diesen Workflow starten."
-      #       exit 1
-      #     fi
-
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.RELEASE_BUILD == 'true' && 'develop' ||  github.ref_name }}
-          token: ${{ env.GIT_CREDENTIALS }}
+          #token: ${{ env.GIT_CREDENTIALS }}
+          token: ${{ secrets.GITHUB_TOKEN }} 
           fetch-depth: 0
 
-      - name: Cache Maven Packages
+      - name: Cache maven packages
         uses: actions/cache@v4
         with:
           path: ${{ env.M2_REPO_PATH }}
@@ -94,34 +83,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Import GPG Key
+      - name: Import gpg key
         run: |
           echo "${{ env.GPG_SIGNKEY }}" | gpg --batch --import || true
 
       - name: Build
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests clean compile 
-        #env:
-        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
           
       - name: Verify
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} verify 
-        #env:
-        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
 
-      - name: Upload JaCoCo Coverage Report
+      - name: Upload JaCoCo coverage report
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           path: "**/target/site/jacoco/"
 
-      - name: Quality Gate
+      - name: Perform quality check
         timeout-minutes: 60
-        #env:
-        #  SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
-        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
         run: |
           mvn --settings .jenkins/settings.xml \
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }}/repository \
@@ -129,30 +111,19 @@ jobs:
               -Dsonar.token=${{ env.SONAR_TOKEN }} \
               -Dsonar.host.url="https://sonar.michael-baedorf.de"
 
-      - name: Find report-task.txt
-        run: find . -name "report-task.txt"
-
-      - name: SonarQube Quality Gate Check
+      - name: Check quality gate
         uses: sonarsource/sonarqube-quality-gate-action@master
         timeout-minutes: 60
         with:
-          # Hier übergeben wir den exakten Pfad zur Datei
           scanMetadataReportFile: ./target/sonar/report-task.txt
-        #env:
-        #  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Install
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests install
-        #env:
-        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
 
-      # Release-Vorbereitung (NUR lokal im Runner, kein ush zurück zu GitHub)
       - name: Gitflow Release (Lokaler Build & Verifizierung)
         if: ${{ github.event.inputs.RELEASE_BUILD == 'true' }}
         run: |
-
-          # 2. Git-Sicherheit für den Container umgehen
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
           git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
@@ -162,7 +133,7 @@ jobs:
           GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
           git config --global user.signingkey "$GPG_KEY_ID"
 
-          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -B -Dresume=false -DpushChanges=false -DargLine='-DprocessAllModules --settings .jenkins/settings.xml -Dmaven.repo.local=/home/maven/.m2 --settings .jenkins/settings.xml' -DskipTestProject=true -DgpgSignTag=true -DgpgSignCommit=true gitflow:release
+          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -B -Dresume=false -DpushChanges=false -DargLine='-DprocessAllModules --settings .jenkins/settings.xml -Dmaven.repo.local=/home/maven/.m2' -DskipTestProject=true -DgpgSignTag=true -DgpgSignCommit=true gitflow:release
       
       - name: deploy
         if: ${{ github.event.inputs.DEPLOY == 'true' }}
@@ -171,10 +142,4 @@ jobs:
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }} \
               -DskipTests \
               deploy              
-        #env:
-        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
-        #  MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
-        #  MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
-        #  MAVEN_RELEASEURL:  ${{ env.MAVEN_RELEASEURL }}
-        #  MAVEN_SNAPSHOTURL:  ${{ env.MAVEN_SNAPSHOTURL }}
 
