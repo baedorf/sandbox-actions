@@ -4,34 +4,30 @@ on:
   workflow_dispatch:
     inputs:
       ENVIRONMENT:
-        description: "Wähle das Ziel-Environment aus"
+        description: "Target"
         type: choice
         required: true
         default: "github"
         options:
           - "github"
           - "tailoringexpert"
-
+      DEPLOY:
+        description: "Deploy to repo"
+        type: boolean
+        default: false
       RELEASE_BUILD:
         description: "Create a release"
         type: boolean
         default: false
-      DEPLOY:
-        description: "Deploy to tailoringxpert repo"
-        type: boolean
-        default: false
 
-# Verhindert, dass alte Builds Log-Speicher blockieren (Entspricht buildDiscarder)
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 env:
-  # Statische Variablen
   GIT_REPOSITORY: "tailoringexpert/platform.git"
   M2_REPO_PATH: ${{ github.workspace }}/.m2/repository
 
-  # Bezieht Umgebungsvariablen/Secrets aus den GitHub Secrets
   GIT_CREDENTIALS: ${{ secrets.GIT_CREDENTIALS }}
   GPG_SIGNKEY: ${{ secrets.GIT_GPG_SIGNKEY }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -39,15 +35,12 @@ env:
 
   GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
   GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
-  env:
-
 
   MAVEN_SNAPSHOTURL: ${{ vars.MAVEN_SNAPSHOTURL || secrets.MAVEN_SNAPSHOTURL}}
   MAVEN_RELEASEURL: ${{ vars.MAVEN_RELEASEURL || secrets.MAVEN_RELEASEURL }}
   MAVEN_CREDENTIALS_USR: ${{ secrets.MAVEN_CREDENTIALS_USR || github.actor}}
   MAVEN_CREDENTIALS_PSW: ${{ secrets.MAVEN_CREDENTIALS_PSW || secrets.GITHUB_TOKEN }}
 
-  # Hier korrigiert (Typo 'CREDENDITALS' entfernt)
   DOCKER_CREDENTIALS_USR: ${{ secrets.DOCKER_CREDENTIALS_USR }}
   DOCKER_CREDENTIALS_PSW: ${{ secrets.DOCKER_CREDENTIALS_PSW }}
 
@@ -65,8 +58,9 @@ jobs:
       image: ghcr.io/tailoringexpert/maven:3.9-eclipse-25
       #options: -user 1001:127
       env:
-        GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
-        GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+        GIT_COMMITTER_NAME: ${{ env.GIT_COMMITTER_NAME }}
+        GIT_COMMITTER_EMAIL: ${{ env.GIT_COMMITTER_EMAIL }}
+        MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
         MAVEN_SNAPSHOTURL: ${{ env.MAVEN_SNAPSHOTURL }}
         MAVEN_RELEASEURL: ${{ env.MAVEN_RELEASEURL }}
         MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
@@ -113,8 +107,8 @@ jobs:
       - name: Verify
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} verify 
-        env:
-          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
+        #env:
+        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
 
       - name: Upload JaCoCo Coverage Report
         if: success()
@@ -125,9 +119,9 @@ jobs:
 
       - name: Quality Gate
         timeout-minutes: 60
-        env:
-          SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
-          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
+        #env:
+        #  SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
+        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
         run: |
           mvn --settings .jenkins/settings.xml \
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }}/repository \
@@ -144,14 +138,14 @@ jobs:
         with:
           # Hier übergeben wir den exakten Pfad zur Datei
           scanMetadataReportFile: ./target/sonar/report-task.txt
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        #env:
+        #  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Install
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests install
-        env:
-          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
+        #env:
+        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
 
       # Release-Vorbereitung (NUR lokal im Runner, kein ush zurück zu GitHub)
       - name: Gitflow Release (Lokaler Build & Verifizierung)
@@ -177,10 +171,10 @@ jobs:
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }} \
               -DskipTests \
               deploy              
-        env:
-          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
-          MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
-          MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
-          MAVEN_RELEASEURL:  ${{ env.MAVEN_RELEASEURL }}
-          MAVEN_SNAPSHOTURL:  ${{ env.MAVEN_SNAPSHOTURL }}
+        #env:
+        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
+        #  MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
+        #  MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
+        #  MAVEN_RELEASEURL:  ${{ env.MAVEN_RELEASEURL }}
+        #  MAVEN_SNAPSHOTURL:  ${{ env.MAVEN_SNAPSHOTURL }}
 
