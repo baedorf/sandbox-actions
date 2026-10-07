@@ -7,10 +7,10 @@ on:
         description: "Wähle das Ziel-Environment aus"
         type: choice
         required: true
-        default: "github-maven"
+        default: "github"
         options:
-          - "github-maven"
-          - "tailoringexpert-maven"
+          - "github"
+          - "tailoringexpert"
 
       RELEASE_BUILD:
         description: "Create a release"
@@ -106,11 +106,11 @@ jobs:
 
       - name: Build
         run: |
-          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests clean compile -P tailoringexpert-maven
+          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests clean compile 
 
       - name: Verify
         run: |
-          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} verify -P tailoringexpert-maven
+          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} verify 
 
       - name: Upload JaCoCo Coverage Report
         if: success()
@@ -127,7 +127,6 @@ jobs:
           mvn --settings .jenkins/settings.xml \
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }}/repository \
               sonar:sonar \
-              -P tailoringexpert-maven \
               -Dsonar.token=${{ env.SONAR_TOKEN }} \
               -Dsonar.host.url="https://sonar.michael-baedorf.de"
 
@@ -145,7 +144,7 @@ jobs:
 
       - name: Install
         run: |
-          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests install -P tailoringexpert-maven
+          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests install
 
       # Release-Vorbereitung (NUR lokal im Runner, kein ush zurück zu GitHub)
       - name: Gitflow Release (Lokaler Build & Verifizierung)
@@ -162,7 +161,7 @@ jobs:
           GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
           git config --global user.signingkey "$GPG_KEY_ID"
 
-          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -B -Dresume=false -DpushChanges=false -DargLine='-DprocessAllModules --settings .jenkins/settings.xml -Dmaven.repo.local=/home/maven/.m2 --settings .jenkins/settings.xml -P tailoringexpert-maven' -DskipTestProject=true -DgpgSignTag=true -DgpgSignCommit=true gitflow:release -P tailoringexpert-maven
+          mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -B -Dresume=false -DpushChanges=false -DargLine='-DprocessAllModules --settings .jenkins/settings.xml -Dmaven.repo.local=/home/maven/.m2 --settings .jenkins/settings.xml' -DskipTestProject=true -DgpgSignTag=true -DgpgSignCommit=true gitflow:release
       
       - name: deploy
         if: ${{ github.event.inputs.DEPLOY == 'true' }}
@@ -170,9 +169,10 @@ jobs:
           mvn --settings .jenkins/settings.xml \
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }} \
               -DskipTests \
-              deploy \
-              -P  ${{ github.event.inputs.ENVIRONMENT }} -e
+              deploy
+              
         env:
+          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
           MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
           MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
           MAVEN_RELEASEURL:  ${{ env.MAVEN_RELEASEURL }}
