@@ -3,6 +3,15 @@ name: CI/CD Pipeline
 on:
   workflow_dispatch:
     inputs:
+      ENVIRONMENT:
+        description: "Wähle das Ziel-Environment aus"
+        type: choice
+        required: true
+        default: "github"
+        options:
+          - "github"
+          - "custom"
+
       RELEASE_BUILD:
         description: "Create a release"
         type: boolean
@@ -46,6 +55,8 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
 
+    environment: ${{ github.event.inputs.ENVIRONMENT }}
+    
     permissions:
       contents: read
       packages: write
