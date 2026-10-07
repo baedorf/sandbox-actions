@@ -5,12 +5,12 @@
 
     <servers>
         <server>
-            <id>tailoringexpert-maven</id>
+            <id>tailoringexpert</id>
             <username>${MAVEN_CREDENTIALS_USR}</username>
             <password>${MAVEN_CREDENTIALS_PSW}</password>
         </server>
         <server>
-            <id>github-maven</id>
+            <id>github</id>
             <username>${MAVEN_CREDENTIALS_USR}</username>
             <password>${MAVEN_CREDENTIALS_PSW}</password>
         </server>
@@ -18,13 +18,13 @@
 
     <profiles>
         <profile>
-            <id>tailoringexpert-maven</id>
+            <id>default</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <server.snapshot>tailoringexpert-maven</server.snapshot>
-                <server.release>tailoringexpert-maven</server.release>
+                <server.snapshot>${MAVEN_SERVERID}</server.snapshot>
+                <server.release>${MAVEN_SERVERID}</server.release>
                 <tailoringexpert-releases.repository>${MAVEN_RELEASEURL}</tailoringexpert-releases.repository>
                 <tailoringexpert-snapshots.repository>${MAVEN_SNAPSHOTURL}</tailoringexpert-snapshots.repository>
                 <tailoringexpert.repository>${MAVEN_URL}</tailoringexpert.repository>
@@ -33,7 +33,7 @@
         <profile>
             <id>github-maven</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
                 <server.snapshot>github-maven</server.snapshot>
