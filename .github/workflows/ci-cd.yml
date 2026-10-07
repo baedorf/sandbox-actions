@@ -101,8 +101,8 @@ jobs:
       - name: Build
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests clean compile 
-        env:
-          MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
+        #env:
+        #  MAVEN_SERVERID: ${{ github.event.inputs.ENVIRONMENT }}
           
       - name: Verify
         run: |
