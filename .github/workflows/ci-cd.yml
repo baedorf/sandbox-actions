@@ -175,4 +175,8 @@ jobs:
         env:
           # Falls das Custom-Repo andere Credentials braucht, 
           # liest Maven diese über env.GITHUB_TOKEN oder Ihre Secrets aus der settings.xml
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
+          MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
+          MAVEN_RELEASEURL:  ${{ env.MAVEN_RELEASEURL }}
+          MAVEN_SNAPSHOTURL:  ${{ env.MAVEN_SNAPSHOTURL }}
+
