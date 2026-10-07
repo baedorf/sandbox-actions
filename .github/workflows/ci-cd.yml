@@ -10,7 +10,7 @@ on:
         default: "github-maven"
         options:
           - "github-maven"
-          - "custom"
+          - "custom01-maven"
 
       RELEASE_BUILD:
         description: "Create a release"
