@@ -25,10 +25,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DOCKER_CREDENTIALS_USR: ${{ secrets.DOCKER_CREDENTIALS_USR }}
-  DOCKER_CREDENTIALS_PSW: ${{ secrets.DOCKER_CREDENTIALS_PSW }}
-  
-  GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+  GIT_COMMITTER_NAME: ${{ vars.GIT_COMMITTER_NAME }}
   GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
   GPG_SIGNKEY: ${{ secrets.GIT_GPG_SIGNKEY }}
   
@@ -118,7 +115,7 @@ jobs:
         run: |
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -DskipTests install
 
-      - name: Gitflow Release (Lokaler Build & Verifizierung)
+      - name: Release
         if: ${{ github.event.inputs.RELEASE_BUILD == 'true' }}
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -132,7 +129,7 @@ jobs:
 
           mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${{ env.M2_REPO_PATH }} -B -Dresume=false -DpushChanges=false -DargLine='-DprocessAllModules --settings .jenkins/settings.xml -Dmaven.repo.local=/home/maven/.m2' -DskipTestProject=true -DgpgSignTag=true -DgpgSignCommit=true gitflow:release
       
-      - name: deploy
+      - name: Deploy
         if: ${{ github.event.inputs.DEPLOY == 'true' }}
         run: |
           mvn --settings .jenkins/settings.xml \
