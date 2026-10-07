@@ -171,7 +171,7 @@ jobs:
               -Dmaven.repo.local=${{ env.M2_REPO_PATH }} \
               -DskipTests \
               deploy \
-              -P  ${{ github.event.inputs.ENVIRONMENT }} -X
+              -P  ${{ github.event.inputs.ENVIRONMENT }} -e
         env:
           MAVEN_CREDENTIALS_USR: ${{ env.MAVEN_CREDENTIALS_USR }}
           MAVEN_CREDENTIALS_PSW: ${{ env.MAVEN_CREDENTIALS_PSW }}
